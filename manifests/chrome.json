@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Example Extension",
+  "version": "1.0.0",
+  "description": "",
+  "icons": {
+    "16": "assets/icons/icon-16.png",
+    "48": "assets/icons/icon-48.png",
+    "128": "assets/icons/icon-128.png"
+  },
+  "background": {
+    "service_worker": "background/main.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/main.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html"
+  },
+  "permissions": ["storage", "tabs"],
+  "web_accessible_resources": [
+    {
+      "resources": ["wasm/rust_wasm_bg.wasm"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  }
+}
