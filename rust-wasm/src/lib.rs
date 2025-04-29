@@ -40,7 +40,8 @@ pub fn storage_set_from_rust(key: JsValue, data: JsValue) -> Promise {
             Some(k) => k,
             None => return Err(JsValue::from_str("Key must be a string")),
         };
-        store.set(&key_str, data).await
+        store.set(&key_str, data).await?;
+        Ok(JsValue::UNDEFINED)
     })
 }
 
@@ -94,6 +95,6 @@ pub fn update_tab_test() -> Promise {
             web_sys::console::log_1(&e);
         }
 
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     })
 }

@@ -1,11 +1,9 @@
-use std::cell::RefCell;
-
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
 pub struct ChromeTabs {
-    update_fn: RefCell<Option<js_sys::Function>>,
-    query_fn: RefCell<Option<js_sys::Function>>,
+    update_fn: js_sys::Function,
+    query_fn: js_sys::Function,
     tabs: JsValue,
 }
 
@@ -13,12 +11,24 @@ impl ChromeTabs {
     pub fn new() -> Self {
         let chrome = js_sys::Reflect::get(&js_sys::global(), &JsValue::from_str("chrome"))
             .expect("Failed to get chrome object from global");
+
         let tabs = js_sys::Reflect::get(&chrome, &JsValue::from_str("tabs"))
             .expect("Failed to get chrome.tabs");
+
+        let update_fn = js_sys::Reflect::get(&tabs, &JsValue::from_str("update"))
+            .expect("Failed to get chrome.tabs.update function")
+            .dyn_into::<js_sys::Function>()
+            .expect("chrome.tabs.update is not a function");
+
+        let query_fn = js_sys::Reflect::get(&tabs, &JsValue::from_str("query"))
+            .expect("Failed to get chrome.tabs.query function")
+            .dyn_into::<js_sys::Function>()
+            .expect("chrome.tabs.query is not a function");
+
         Self {
             tabs,
-            update_fn: RefCell::new(None),
-            query_fn: RefCell::new(None),
+            update_fn,
+            query_fn,
         }
     }
 
@@ -27,9 +37,7 @@ impl ChromeTabs {
         tab_id: i64,
         update_properties: TabUpdateProperties,
     ) -> Result<(), JsValue> {
-        self.init_update_fn()?;
-
-        let promise = self.update_fn.borrow().as_ref().unwrap().call2(
+        let promise = self.update_fn.call2(
             &self.tabs,
             &serde_wasm_bindgen::to_value(&tab_id)?,
             &serde_wasm_bindgen::to_value(&update_properties)?,
@@ -44,9 +52,7 @@ impl ChromeTabs {
         &self,
         update_properties: TabUpdateProperties,
     ) -> Result<(), JsValue> {
-        self.init_update_fn()?;
-
-        let promise = self.update_fn.borrow().as_ref().unwrap().call1(
+        let promise = self.update_fn.call1(
             &self.tabs,
             &serde_wasm_bindgen::to_value(&update_properties)?,
         )?;
@@ -56,26 +62,8 @@ impl ChromeTabs {
         Ok(())
     }
 
-    fn init_update_fn(&self) -> Result<(), JsValue> {
-        let mut update_fn = self.update_fn.borrow_mut();
-        if update_fn.is_none() {
-            *update_fn = Some(
-                js_sys::Reflect::get(&self.tabs, &JsValue::from_str("update"))?
-                    .dyn_into::<js_sys::Function>()?,
-            );
-        }
-        Ok(())
-    }
-
     pub async fn query_all(&self) -> Result<Vec<Tab>, JsValue> {
-        self.init_query_fn()?;
-
-        let promise = self
-            .query_fn
-            .borrow()
-            .as_ref()
-            .unwrap()
-            .call1(&self.tabs, &js_sys::Object::new())?;
+        let promise = self.query_fn.call1(&self.tabs, &js_sys::Object::new())?;
         let promise = js_sys::Promise::resolve(&promise);
         let result = wasm_bindgen_futures::JsFuture::from(promise).await?;
         let tabs = serde_wasm_bindgen::from_value::<Vec<Tab>>(result)?;
@@ -83,30 +71,12 @@ impl ChromeTabs {
     }
 
     pub async fn query(&self, query_info: ChromeTabsQueryInput) -> Result<Vec<Tab>, JsValue> {
-        self.init_query_fn()?;
-
         let input = serde_wasm_bindgen::to_value(&query_info)?;
-        let promise = self
-            .query_fn
-            .borrow()
-            .as_ref()
-            .unwrap()
-            .call1(&self.tabs, &input)?;
+        let promise = self.query_fn.call1(&self.tabs, &input)?;
         let promise = js_sys::Promise::resolve(&promise);
         let result = wasm_bindgen_futures::JsFuture::from(promise).await?;
         let tabs = serde_wasm_bindgen::from_value::<Vec<Tab>>(result)?;
         Ok(tabs)
-    }
-
-    fn init_query_fn(&self) -> Result<(), JsValue> {
-        let mut query_fn = self.query_fn.borrow_mut();
-        if query_fn.is_none() {
-            *query_fn = Some(
-                js_sys::Reflect::get(&self.tabs, &JsValue::from_str("query"))?
-                    .dyn_into::<js_sys::Function>()?,
-            );
-        }
-        Ok(())
     }
 }
 
