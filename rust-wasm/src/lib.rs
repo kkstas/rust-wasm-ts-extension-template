@@ -8,6 +8,9 @@ use wasm_bindgen_futures::future_to_promise;
 
 mod chrome;
 
+#[macro_use]
+mod util;
+
 #[wasm_bindgen(start)]
 pub fn main() {
     console_error_panic_hook::set_once();
@@ -49,10 +52,8 @@ pub fn query_tab_test() -> Promise {
                 index: Some(3),
                 ..Default::default()
             })
-            .await;
-        web_sys::console::log_1(
-            &serde_wasm_bindgen::to_value(&format!("{:?}", found_tab)).unwrap(),
-        );
+            .await?;
+        log!("{:?}", &found_tab);
 
         Ok(JsValue::undefined())
     })
