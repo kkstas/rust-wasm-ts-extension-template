@@ -3,21 +3,14 @@ use chrome::{
     tabs::{ChromeTabs, ChromeTabsQueryInput},
 };
 use js_sys::Promise;
-use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::future_to_promise;
 
 mod chrome;
 
-#[derive(Serialize, Deserialize)]
-pub struct SomeObject {
-    asdf: String,
-}
-
-impl From<SomeObject> for JsValue {
-    fn from(obj: SomeObject) -> Self {
-        serde_wasm_bindgen::to_value(&obj).unwrap_or(JsValue::undefined())
-    }
+#[wasm_bindgen(start)]
+pub fn main() {
+    console_error_panic_hook::set_once();
 }
 
 #[wasm_bindgen]
