@@ -32,7 +32,7 @@ impl ChromeTabs {
         }
     }
 
-    pub async fn update_by_id(
+    pub async fn update(
         &self,
         tab_id: i64,
         update_properties: TabUpdateProperties,
@@ -62,17 +62,17 @@ impl ChromeTabs {
         Ok(())
     }
 
-    pub async fn query_all(&self) -> Result<Vec<Tab>, JsValue> {
-        let promise = self.query_fn.call1(&self.tabs, &js_sys::Object::new())?;
+    pub async fn query(&self, query_info: ChromeTabsQueryInput) -> Result<Vec<Tab>, JsValue> {
+        let input = serde_wasm_bindgen::to_value(&query_info)?;
+        let promise = self.query_fn.call1(&self.tabs, &input)?;
         let promise = js_sys::Promise::resolve(&promise);
         let result = wasm_bindgen_futures::JsFuture::from(promise).await?;
         let tabs = serde_wasm_bindgen::from_value::<Vec<Tab>>(result)?;
         Ok(tabs)
     }
 
-    pub async fn query(&self, query_info: ChromeTabsQueryInput) -> Result<Vec<Tab>, JsValue> {
-        let input = serde_wasm_bindgen::to_value(&query_info)?;
-        let promise = self.query_fn.call1(&self.tabs, &input)?;
+    pub async fn query_all(&self) -> Result<Vec<Tab>, JsValue> {
+        let promise = self.query_fn.call1(&self.tabs, &js_sys::Object::new())?;
         let promise = js_sys::Promise::resolve(&promise);
         let result = wasm_bindgen_futures::JsFuture::from(promise).await?;
         let tabs = serde_wasm_bindgen::from_value::<Vec<Tab>>(result)?;

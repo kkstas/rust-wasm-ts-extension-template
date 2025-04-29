@@ -17,78 +17,53 @@ pub fn main() {
 }
 
 #[wasm_bindgen]
-pub fn storage_get_from_rust(key: JsValue) -> Promise {
+pub fn example_store_fn(key: JsValue, data: JsValue) -> Promise {
     let store = ChromeStorageLocal::new();
-    future_to_promise(async move {
-        let key_str = match key.as_string() {
-            Some(k) => k,
-            None => return Err(JsValue::from_str("Key must be a string")),
-        };
-        store.get(&key_str).await
-    })
-}
 
-#[wasm_bindgen]
-pub fn storage_set_from_rust(key: JsValue, data: JsValue) -> Promise {
-    let store = ChromeStorageLocal::new();
     future_to_promise(async move {
         let key_str = match key.as_string() {
             Some(k) => k,
             None => return Err(JsValue::from_str("Key must be a string")),
         };
         store.set(&key_str, data).await?;
-        Ok(JsValue::UNDEFINED)
+        store.get(&key_str).await
     })
 }
 
 #[wasm_bindgen]
-pub fn query_tab_test() -> Promise {
-    future_to_promise(async {
-        let chrome_tabs = ChromeTabs::new();
+pub fn example_chrome_tabs_fn() -> Promise {
+    let chrome_tabs = ChromeTabs::new();
 
-        let _found_tabs = chrome_tabs.query_all().await?;
-        let found_tab = chrome_tabs
+    future_to_promise(async move {
+        let found_tabs = chrome_tabs
             .query(ChromeTabsQueryInput {
                 index: Some(3),
                 ..Default::default()
             })
             .await?;
-        log!("{:?}", &found_tab);
+        log!("{:?}", found_tabs);
 
-        Ok(JsValue::undefined())
-    })
-}
+        let found_tabs = chrome_tabs.query_all().await?;
 
-#[wasm_bindgen]
-pub fn update_tab_test() -> Promise {
-    future_to_promise(async {
-        let chrome_tabs = ChromeTabs::new();
-
-        let result = chrome_tabs
-            .update_by_id(
-                1316221559,
-                chrome::tabs::TabUpdateProperties {
-                    pinned: Some(true),
-                    ..Default::default()
-                },
-            )
-            .await;
-
-        if let Err(e) = result {
-            web_sys::console::log_1(&e);
+        if let Some(id) = found_tabs.last().and_then(|tab| tab.id) {
+            chrome_tabs
+                .update(
+                    id,
+                    chrome::tabs::TabUpdateProperties {
+                        pinned: Some(false),
+                        ..Default::default()
+                    },
+                )
+                .await?;
         }
 
-        let result = chrome_tabs
+        chrome_tabs
             .update_active(chrome::tabs::TabUpdateProperties {
                 muted: Some(true),
                 ..Default::default()
             })
-            .await;
+            .await?;
 
-        if let Err(e) = result {
-            web_sys::console::log_1(&e);
-        }
-
-        Ok(JsValue::UNDEFINED)
+        Ok(JsValue::undefined())
     })
 }

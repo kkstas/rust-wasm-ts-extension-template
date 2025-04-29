@@ -1,6 +1,6 @@
 import init, {
-  storage_get_from_rust,
-  storage_set_from_rust,
+  example_store_fn,
+  example_chrome_tabs_fn,
 } from '../../rust-wasm/target/web/rust_wasm';
 
 async function loadWasm() {
@@ -21,9 +21,10 @@ chrome.runtime.onMessage.addListener(
     sendResponse: (response: object) => void,
   ) => {
     (async () => {
-      await storage_set_from_rust('SOME_KEY', message);
-      const received = await storage_get_from_rust('SOME_KEY');
+      const received = await example_store_fn('SOME_KEY', message);
       console.log(`received from rust:`, received);
+      const res = await example_chrome_tabs_fn();
+      console.log(res);
     })();
 
     return true;
