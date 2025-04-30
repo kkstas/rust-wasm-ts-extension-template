@@ -2,10 +2,10 @@ RUST_DIR = ./rust-wasm
 TS_NODE_BIN = ./node_modules/.bin/ts-node
 
 wasm-dev:
-	wasm-pack build $(RUST_DIR) --out-dir target/web --target web --dev
+	wasm-pack build $(RUST_DIR) --out-dir target/web --target web --dev --features 'console_error_panic_hook'
 
 wasm-prod:
-	wasm-pack build $(RUST_DIR) --out-dir target/web --target web --release
+	wasm-pack build $(RUST_DIR) --out-dir target/web --target web --release --no-default-features
 
 chrome-dev: wasm-dev
 	pnpm install
