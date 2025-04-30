@@ -1,6 +1,9 @@
 import * as esbuild from 'esbuild';
 import copy from 'esbuild-plugin-copy';
 import { typeCheckPlugin } from './type-check.plugin.mjs';
+import { rustWatchPlugin } from './rust-watch.plugin.mjs';
+
+const log = (...args) => console.log('⚡ [esbuild]', ...args);
 
 const isWatchMode = process.argv.includes('--watch');
 const isProd = process.argv.includes('--prod');
@@ -15,6 +18,10 @@ const manifestFrom = (() => {
     'Browser target not specified. Use flag (e.g. --chrome) to specify browser target.',
   );
 })();
+
+log(`Target: ${isFirefox ? 'Firefox' : isChrome ? 'Chrome' : 'Unknown'}`);
+log(`Mode: ${isProd ? 'Production' : 'Development'}`);
+log(`Watch: ${isWatchMode ? 'Enabled' : 'Disabled'}`);
 
 const context = await esbuild.context({
   entryPoints: [
@@ -43,6 +50,7 @@ const context = await esbuild.context({
   },
   plugins: [
     typeCheckPlugin,
+    rustWatchPlugin,
 
     copy({
       resolveFrom: 'cwd',
@@ -71,14 +79,12 @@ const context = await esbuild.context({
   ],
 });
 
-console.log(`🔧 Build mode: ${isProd ? 'Production' : 'Development'}`);
-console.log(`👀 Watching: ${isWatchMode ? 'Yes' : 'No'}`);
-
 if (isWatchMode) {
-  console.log('👁️  Watching for file changes...');
   await context.watch();
+  log('Watching for file changes...');
 } else {
-  console.log('📦 Building...');
+  log('Building...');
   await context.rebuild();
   await context.dispose();
+  log('✅ Build complete');
 }

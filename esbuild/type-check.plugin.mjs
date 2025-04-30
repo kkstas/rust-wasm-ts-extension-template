@@ -1,17 +1,20 @@
 import { execSync } from 'child_process';
 
+const log = (...args) => console.log('🔷 [type-check-plugin]', ...args);
+
 /** Custom plugin to run tsc --noEmit before each build */
 export const typeCheckPlugin = {
   name: 'type-check-plugin',
   setup(build) {
-    build.onStart(async () => {
+    build.onStart(() => {
       try {
-        console.log('🔍 Running type-checking...');
+        log('Running type-checking...');
         execSync('./node_modules/typescript/bin/tsc --noEmit', {
           stdio: 'inherit',
         });
-        console.log('✅ Type-checking passed');
-      } catch (error) {
+        log('✅ Type-checking passed');
+      } catch (err) {
+        log('❌ Type-checking failed');
         return { errors: [{ text: 'Type-checking failed, build aborted' }] };
       }
     });
