@@ -1,11 +1,13 @@
 import { execSync } from 'child_process';
 import * as path from 'path';
 import { watch } from 'fs';
+import type { Plugin } from 'esbuild';
 
-const log = (...args) => console.log('🦀 [rust-watch-plugin]', ...args);
+const log = (...args: any[]): void =>
+  console.log('🦀 [rust-watch-plugin]', ...args);
 
 /**  Custom plugin for rebuilding WASM when Rust files change */
-export const rustWatchPlugin = {
+export const rustWatchPlugin: Plugin = {
   name: 'rust-watch-plugin',
   setup(_) {
     const isWatchMode = process.argv.includes('--watch');
@@ -22,7 +24,7 @@ export const rustWatchPlugin = {
     if (isWatchMode) {
       const rustDir = path.join(process.cwd(), 'rust-wasm/src');
 
-      let debounceTimer = null;
+      let debounceTimer: NodeJS.Timeout | null = null;
       let isBuilding = false;
 
       const watcher = watch(rustDir, { recursive: true }, (_, filename) => {

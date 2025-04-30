@@ -1,9 +1,11 @@
 import { execSync } from 'child_process';
+import type { Plugin } from 'esbuild';
 
-const log = (...args) => console.log('🔷 [type-check-plugin]', ...args);
+const log = (...args: any[]): void =>
+  console.log('🔷 [type-check-plugin]', ...args);
 
 /** Custom plugin to run tsc --noEmit before each build */
-export const typeCheckPlugin = {
+export const typeCheckPlugin: Plugin = {
   name: 'type-check-plugin',
   setup(build) {
     build.onStart(() => {
