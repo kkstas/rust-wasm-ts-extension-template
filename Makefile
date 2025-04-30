@@ -1,16 +1,16 @@
 RUST_DIR = ./rust-wasm
 
 wasm-dev:
-	cd $(RUST_DIR) && wasm-pack build --out-dir target/web --target web --dev
+	wasm-pack build $(RUST_DIR) --out-dir $(RUST_DIR)/target/web --target web --dev
 
 wasm-prod:
-	cd $(RUST_DIR) && wasm-pack build --out-dir target/web --target web --release
+	wasm-pack build $(RUST_DIR) --out-dir $(RUST_DIR)/target/web --target web --release
 
 chrome-dev: wasm-dev
 	pnpm install
 	node esbuild/esbuild.config.mjs --chrome
 
-chrome-watch: wasm-dev
+chrome-watch:
 	pnpm install
 	node esbuild/esbuild.config.mjs --watch --chrome
 
@@ -23,7 +23,7 @@ firefox-dev: wasm-dev
 	pnpm install
 	node esbuild/esbuild.config.mjs --firefox
 
-firefox-watch: wasm-dev
+firefox-watch:
 	pnpm install
 	node esbuild/esbuild.config.mjs --watch --firefox
 
